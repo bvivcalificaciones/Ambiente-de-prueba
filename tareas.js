@@ -269,7 +269,8 @@ function vTarCatalogo(){
 }
 
 /* ---------- acciones ---------- */
-const tarEn = () => (S.tab === 'panel' && S.ptab === 'tareas') || (S.tab === 'guardia' && S.mode === 'tareas');
+// Panel desde la PC (pestaña Panel) o desde el celular (Guardia → Panel), o Mis tareas.
+const tarEn = () => (S.ptab === 'tareas' && (S.tab === 'panel' || (S.tab === 'guardia' && S.mode === 'panel'))) || (S.tab === 'guardia' && S.mode === 'tareas');
 async function tareasAction(t){
   if(!tarEn()) return false;
   const d = t.dataset, D = S.tar;

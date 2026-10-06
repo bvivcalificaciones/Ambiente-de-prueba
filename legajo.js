@@ -390,7 +390,7 @@ async function legAbrirArchivo(aid){
 
 /* ---------- acciones ---------- */
 async function legajoAction(t){
-  const d = t.dataset, enLeg = (S.tab === 'panel' && S.ptab === 'legajos') || (S.tab === 'guardia' && S.mode === 'legajo');
+  const d = t.dataset, enLeg = (S.ptab === 'legajos' && (S.tab === 'panel' || (S.tab === 'guardia' && S.mode === 'panel'))) || (S.tab === 'guardia' && S.mode === 'legajo');
   if(!enLeg) return false;
   const viewer = viewerNow();
   if(t.id === 'legretry'){ if(S.leg === false) S.leg = null; if(S.legD === false) S.legD = null; if(S.legP === false) S.legP = null; render(); return true; }
@@ -486,7 +486,7 @@ function renderKeep(){
   for(const [id, v, cb] of vals){ const el = document.getElementById(id); if(el){ if(cb) el.checked = v; else el.value = v; } }
 }
 function legajoChange(e){
-  const t = e.target, enLeg = (S.tab === 'panel' && S.ptab === 'legajos') || (S.tab === 'guardia' && S.mode === 'legajo');
+  const t = e.target, enLeg = (S.ptab === 'legajos' && (S.tab === 'panel' || (S.tab === 'guardia' && S.mode === 'panel'))) || (S.tab === 'guardia' && S.mode === 'legajo');
   if(!enLeg) return false;
   if(t.id === 'legq'){ S.legQ = t.value; render(); return true; }
   if(t.type !== 'file' || !t.files || !t.files.length) return false;
