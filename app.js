@@ -1254,7 +1254,7 @@ if('serviceWorker' in navigator){
   const habiaSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js').then(r=>{setInterval(()=>r.update().catch(()=>{}),30*60*1000)}).catch(()=>{});
   // Versión nueva instalada: se recarga sola apenas nadie tenga una sesión abierta.
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!habiaSW)return;if(!isLogged())location.reload();else S.recargar=true});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!habiaSW)return;if(!isLogged())location.reload();else{S.recargar=true;toast('Hay una versión nueva de la app: se actualiza sola cuando salgas.')}});
 }
 (async()=>{
   render();

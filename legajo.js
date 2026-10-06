@@ -425,7 +425,9 @@ async function legajoAction(t){
     if(await legDo('legajo_historial_guardar', { pid, datos }, 'Agregado al historial.')){ S.legEdit = null; render(); }
     return true;
   }
-  if(d.leghdel){ if(!confirmTwice(t, 'Tocá de nuevo para quitarlo del historial.')) return true; await legDo('legajo_historial_quitar', { hid: +d.leghdel }, 'Quitado del historial.'); return true; }
+  if(d.leghdel){ const h = (S.legD?.hist || []).find(x => x.id === +d.leghdel);
+    const aviso = h && (h.tipo === 'ascenso' || h.tipo === 'nivel') ? `Esto borra solo el registro del historial: ${h.tipo === 'ascenso' ? 'la jerarquía' : 'el nivel'} se cambia con Editar. Tocá de nuevo para quitarlo.` : 'Tocá de nuevo para quitarlo del historial.';
+    if(!confirmTwice(t, aviso)) return true; await legDo('legajo_historial_quitar', { hid: +d.leghdel }, 'Quitado del historial.'); return true; }
   if(t.id === 'legsavearch'){
     const clase = d.clase, datos = { clase, id: S.legEditId || null, t: $('#la_t').value, inst: $('#la_inst')?.value || null, f: $('#la_f').value || null, v: $('#la_v').value || null };
     if(datos.t.trim().length < 2){ toast(clase === 'medico' ? 'Escribí qué documento es.' : 'Escribí el nombre del curso.'); return true; }
