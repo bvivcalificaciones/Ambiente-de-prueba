@@ -184,9 +184,20 @@ function vTarAsignar(gsel){
   if(!A.l && lugares.length) A.l = lugares[0].id;
   const its = vivos.filter(it => it.l === A.l).sort((a, b) => tarTipo(a).n.localeCompare(tarTipo(b).n, 'es'));
   const q = (S.tarQ || '').trim().toLowerCase(), gente = tarAsignables(), vis = gente.filter(p => !q || p.n.toLowerCase().includes(q) || A.ps.includes(p.id));
-  const carga = new Map(); for(const t of D.tareas) if(tarAbierta(t)) carga.set(t.pid, (carga.get(t.pid) || 0) + 1);
-  const chip = (attr, id, on, txt, sub, warn) => `<button class="chip sm ${warn ? 'venc' : ''}" ${attr}="${id}" aria-pressed="${on}">${txt}${sub ? `<span class="sub">${sub}</span>` : ''}</button>`;
+  // Quién ya tiene qué (tareas abiertas): se pinta antes de asignar.
+  const carga = new Map(), porItem = new Map(), porPers = new Map();
+  for(const t of D.tareas) if(tarAbierta(t)){
+    carga.set(t.pid, (carga.get(t.pid) || 0) + 1);
+    if(!porItem.has(t.i)) porItem.set(t.i, []); porItem.get(t.i).push(t.n);
+    if(!porPers.has(t.pid)) porPers.set(t.pid, new Set()); porPers.get(t.pid).add(t.i);
+  }
+  const ape = n => split(n)[0].toLowerCase().replace(/(^|\s)\p{L}/gu, m => m.toUpperCase());
+  const chip = (attr, id, on, txt, sub, cls) => `<button class="chip sm ${cls || ''}" ${attr}="${id}" aria-pressed="${on}">${txt}${sub ? `<span class="sub">${sub}</span>` : ''}</button>`;
   const selIts = A.its.map(id => tarDesc(id)), selPs = gente.filter(p => A.ps.includes(p.id));
+  const repetidas = p => A.its.filter(i => porPers.get(p.id)?.has(i));
+  const efectivos = selPs.filter(p => repetidas(p).length < A.its.length), nuevas = selPs.reduce((n, p) => n + A.its.length - repetidas(p).length, 0);
+  const conRep = selPs.filter(p => repetidas(p).length);
+  const aviso = A.its.length && conRep.length ? `<div class="warnline"><b>!</b><span>${conRep.map(p => `<b>${esc(nice(p.n))}</b> ya tiene ${repetidas(p).length === A.its.length ? (A.its.length > 1 ? 'esas tareas' : `"${esc(tarDesc(A.its[0]))}"`) : repetidas(p).map(i => `"${esc(tarDesc(i))}"`).join(', ')} pendiente`).join('; ')}: no se repite.${efectivos.length ? ` Se asigna a <b>${efectivos.map(p => esc(nice(p.n))).join('</b>, <b>')}</b>.` : ' No queda nada nuevo para asignar.'}</span></div>` : '';
   const grupo = c => lugares.filter(l => l.c === c).map(l => chip('data-tarl', l.id, l.id === A.l, esc(l.n), '', vivos.some(it => it.l === l.id && ['venc', 'nunca'].includes(tarPer(it)?.k)))).join('');
   return `<div class="filters">${gsel}</div>
   <div class="side">
@@ -194,17 +205,22 @@ function vTarAsignar(gsel){
     <span class="label">1 · Unidad o sector</span>
     <div class="chips" style="margin-top:6px">${grupo('unidad')}</div><div class="chips" style="margin-top:6px">${grupo('sector')}</div>
     <span class="label" style="display:block;margin-top:16px">2 · Tareas de ${esc(D.L.get(A.l)?.n || '')}</span>
-    <div class="chips" style="margin-top:6px">${its.map(it => { const s = tarPer(it); return chip('data-tari', it.id, A.its.includes(it.id), esc(tarTipo(it).n), it.cada ? tarPerHint(it) : '', s && ['venc', 'nunca'].includes(s.k)); }).join('') || '<span class="meta">No hay tareas en el catálogo para este lugar.</span>'}</div>
+    <div class="chips" style="margin-top:6px">${its.map(it => { const s = tarPer(it), quien = porItem.get(it.id);
+      return chip('data-tari', it.id, A.its.includes(it.id), esc(tarTipo(it).n), quien ? 'asignada a ' + esc([...new Set(quien.map(ape))].join(', ')) : it.cada ? tarPerHint(it) : '',
+        quien ? 'ya' : s && ['venc', 'nunca'].includes(s.k) ? 'venc' : ''); }).join('') || '<span class="meta">No hay tareas en el catálogo para este lugar.</span>'}</div>
     ${A.its.length ? `<p class="demo" style="margin:8px 0 0">Elegidas: ${selIts.map(esc).join(' · ')}</p>` : ''}
     <span class="label" style="display:block;margin-top:16px">3 · Quiénes${D.jefe ? '' : ' · ' + (tarGuardia() === '0' ? 'sin guardia' : 'Guardia ' + tarGuardia())}</span>
     <input class="search" id="tarq" style="margin:6px 0 8px;max-width:320px;padding:9px 12px" placeholder="Buscar por apellido" value="${esc(S.tarQ || '')}" autocomplete="off">
-    <div class="chips">${vis.map(p => chip('data-tarp', p.id, A.ps.includes(p.id), esc(p.n), carga.get(p.id) ? `${carga.get(p.id)} pendiente${carga.get(p.id) > 1 ? 's' : ''}` : '')).join('') || '<span class="meta">Nadie para asignar con este filtro.</span>'}</div>
+    <div class="chips">${vis.map(p => { const rep = A.its.length ? repetidas(p).length : 0, n = carga.get(p.id) || 0;
+      return chip('data-tarp', p.id, A.ps.includes(p.id), esc(p.n), rep ? (rep === A.its.length ? (A.its.length > 1 ? 'ya tiene estas tareas' : 'ya tiene esta tarea') : `ya tiene ${rep} de estas`) : n ? `${n} pendiente${n > 1 ? 's' : ''}` : '', rep ? 'dup' : n ? 'ya' : ''); }).join('') || '<span class="meta">Nadie para asignar con este filtro.</span>'}</div>
+    <div class="legmini"><span><i class="ya"></i>Ya tiene tareas pendientes</span><span><i class="dup"></i>Ya tiene la tarea elegida</span><span><i class="sel"></i>Elegido</span></div>
+    ${aviso}
     <div class="row" style="margin-top:16px;align-items:center;gap:14px"><span class="label">Urgente</span><span class="toggle"><button class="${A.urg ? 'on' : ''}" data-tarurg="1">Sí</button><button class="${A.urg ? '' : 'on'}" data-tarurg="0">No</button></span>
       <span class="label" style="margin-left:6px">Plazo</span><span class="pill">Fin de la semana · ${fmtD(loc(D.plazo)).replace(' ', ' ')}</span></div>
-    <button class="btn primary big" id="tarasig" ${A.its.length && A.ps.length ? '' : 'disabled'}>Asignar</button>
+    <button class="btn primary big" id="tarasig" ${nuevas ? '' : 'disabled'}>${efectivos.length && efectivos.length <= 2 ? 'Asignar a ' + efectivos.map(p => esc(nice(p.n))).join(' y ') : 'Asignar'}</button>
   </div>
   <div><div class="summary"><span class="label" style="color:#ddd">Resumen</span>
-    <p style="margin:6px 0 0;font-size:18px">${A.its.length && selPs.length ? `<b>${A.its.length} tarea${A.its.length > 1 ? 's' : ''}</b> para <b>${selPs.map(p => esc(nice(p.n))).join('</b>, <b>')}</b>.${A.urg ? '<br>Urgente.' : ''}` : 'Elegí el lugar, las tareas y las personas.'}</p>
+    <p style="margin:6px 0 0;font-size:18px">${nuevas ? `<b>${nuevas} tarea${nuevas > 1 ? 's' : ''} nueva${nuevas > 1 ? 's' : ''}</b> para <b>${efectivos.map(p => esc(nice(p.n))).join('</b>, <b>')}</b>.${A.urg ? '<br>Urgente.' : ''}` : A.its.length && selPs.length ? 'Las personas elegidas ya tienen esas tareas.' : 'Elegí el lugar, las tareas y las personas.'}</p>
     <p style="margin:10px 0 0;font-size:15px">Les llega un aviso al celular. La revisa cualquier superior de la guardia <b>menos vos</b>.</p></div>
     <div class="card" style="margin-top:16px"><h3>Carga de la semana</h3><ul class="list">${gente.map(p => [p, carga.get(p.id) || 0]).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([p, n]) => `<li><span>${esc(nice(p.n))}</span><span class="meta">${n} pendiente${n === 1 ? '' : 's'}</span></li>`).join('') || '<li class="empty">Sin personal.</li>'}</ul>
     <p class="demo" style="margin:6px 0 0">Para repartir parejo.</p></div></div>

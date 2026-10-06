@@ -550,6 +550,14 @@ td.caldet{background:var(--bg);white-space:normal;padding:14px}
 .catl{display:flex;justify-content:space-between;align-items:center;gap:8px;border:2px solid transparent;background:var(--bg);border-radius:8px;padding:8px 10px;font-weight:600;text-align:left}
 .catl span{font-size:13px;color:var(--muted);font-weight:700}
 .catl.on{border-color:var(--red);background:var(--red-soft)}.catl.off{opacity:.5}
+.chip.ya{background:#e3eefa;border-color:#7fa9d6;color:#164f86}
+.chip.dup{background:#fff4d1;border-color:#f08a24;color:var(--ink)}.chip.dup .sub{color:#8a4b00}
+.chip.ya[aria-pressed="true"],.chip.dup[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.chip.ya[aria-pressed="true"] .sub,.chip.dup[aria-pressed="true"] .sub{color:#fff}
+.warnline{display:flex;gap:8px;align-items:flex-start;background:#fff4d1;border:2px solid #f08a24;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:15px}
+.legmini{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legmini i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px;border:2px solid}
+.legmini i.ya{background:#e3eefa;border-color:#7fa9d6}.legmini i.dup{background:#fff4d1;border-color:#f08a24}.legmini i.sel{background:var(--red);border-color:var(--red)}
 @media (max-width:900px){.kan,.side,.catgrid{grid-template-columns:1fr}}
 </style>
 </head>
