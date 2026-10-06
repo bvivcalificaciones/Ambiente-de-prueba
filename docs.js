@@ -612,7 +612,7 @@ function pdfConsentimiento(viewer, nombre){ return generar(async () => {
   tit('2. Para qué se usan');
   txt('Llevar el legajo (ingreso, jerarquía, nivel, departamentos, cursos, calificaciones y antigüedad); gestionar guardias, asistencia, equipamiento y reemplazos; contar con información de salud para una atención rápida ante un accidente durante un servicio; controlar el apto físico; y cumplir informes que pidan la Federación o los organismos provinciales. No se usan con fines comerciales, no se venden ni se publican.');
   tit('3. Qué datos');
-  txt('Personales: DNI, fecha de nacimiento, domicilio, teléfono, correo, foto, obra social y contacto de emergencia. De salud (datos sensibles, arts. 2 y 7): grupo y factor sanguíneo, alergias, condiciones a tener en cuenta, medicación habitual, vacunas, apto físico y ficha médica. Nadie está obligado a dar datos sensibles.');
+  txt('Personales: DNI, fecha de nacimiento, domicilio, teléfono, correo, obra social y contacto de emergencia. De salud (datos sensibles, arts. 2 y 7): grupo y factor sanguíneo, alergias, condiciones a tener en cuenta, medicación habitual, vacunas, apto físico y ficha médica. Nadie está obligado a dar datos sensibles.');
   tit('4. Quién los ve');
   txt('Legajo institucional: la persona, la jefatura, los superiores y el administrador del sistema. Datos personales y de salud: la persona, el Jefe, el Sub Jefe, el administrador del sistema y, durante un siniestro, quien esté a cargo del operativo. Cada consulta queda registrada y la persona puede verla. Quienes acceden tienen deber de confidencialidad (art. 10).');
   tit('5. Conservación y derechos');
@@ -621,7 +621,7 @@ function pdfConsentimiento(viewer, nombre){ return generar(async () => {
   txt('El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley Nº 25.326. La Agencia de Acceso a la Información Pública, en su carácter de Órgano de Control de la Ley Nº 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales.', { size: 7.4 });
   tit('6. Autorizo (marcar con una cruz)');
   for(const t of ['El tratamiento de mis datos personales para el legajo y la gestión del cuartel.', 'El tratamiento de mis datos de salud con las finalidades y accesos indicados.',
-    'Que en una emergencia se informen mis datos de salud imprescindibles al servicio que me atienda.', 'El uso de mi foto en el legajo y en la app del cuartel.']){
+    'Que en una emergencia se informen mis datos de salud imprescindibles al servicio que me atienda.']){
     d.ensure(16); d.y -= 15; d.rect(d.L, d.y - 2, 10, 10, null, 'ink'); d.text(t, d.L + 16, d.y, { size: 8.6 });
   }
   d.y -= 4; txt('Me comprometo a avisar cualquier cambio en mis datos de salud. Lugar y fecha: Isla Verde, ____ / ____ / ________');

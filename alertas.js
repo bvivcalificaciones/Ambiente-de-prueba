@@ -2,7 +2,7 @@
    ALERTAS
     · Alerta amarilla: la emiten jefatura o superiores (tipo, lugar, convocatoria, cobertura, cuartel, instituciones).
     · Apresto: cualquier bombero se anota como disponible, con una nota opcional.
-    · Alerta roja: solo jefatura. Elige de los aprestos quién va y agrega los datos de salida.
+    · Alerta roja: jefatura, administradores y superiores. Eligen de los aprestos quién va y agregan los datos de salida.
     · Tonos: la jefatura elige uno para la amarilla y otro para la roja (para todos); cada dispositivo puede cambiarlo.
       Suenan con la app abierta. Con el celular bloqueado suena el aviso del teléfono, con vibración larga.
    ===================================================================== */
@@ -137,7 +137,7 @@ function vAlertas(){
   return head + (D.puede ? vAlrNueva() : '')
     + `<div class="alrlist">${act.map(a => vAlrCard(a, D, v)).join('') || '<p class="card off" style="margin:0">No hay alertas activas.</p>'}</div>`
     + (past.length ? `<div class="section-h"><h3 style="margin:0">Anteriores</h3><button class="btn small outline" id="alrpast">${S.alrPast ? 'Ocultar' : 'Ver las ' + past.length}</button></div>${S.alrPast ? `<div class="alrlist">${past.map(a => vAlrCard(a, D, v)).join('')}</div>` : ''}` : '')
-    + (D.roja ? vAlrConfig() : '') + vTonoDispositivo(true);
+    + ((D.cfg ?? D.roja) ? vAlrConfig() : '') + vTonoDispositivo(true);
 }
 function vAlrNueva(){
   if(!S.alrNew) return '<button class="btn primary big" id="alrnew" style="margin:0 0 16px;background:#b88a00;color:#111">Emitir alerta amarilla</button>';

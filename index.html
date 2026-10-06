@@ -498,6 +498,7 @@ td.caldet{background:var(--bg);white-space:normal;padding:14px}
 .consbar .tags{display:inline-flex;flex-wrap:wrap;gap:6px}
 .blood{font-family:var(--f-display);font-size:48px;font-weight:700;color:var(--red);line-height:1}
 .medgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+.medgrid .dl2{grid-template-columns:minmax(0,150px) minmax(0,1fr)}.medgrid .dl2 dd{overflow-wrap:normal;word-break:normal}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .ficha .blood{font-size:40px}
 .ficha .medgrid{grid-template-columns:1fr;gap:6px}
@@ -558,6 +559,15 @@ td.caldet{background:var(--bg);white-space:normal;padding:14px}
 .legmini{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin:10px 0 0}
 .legmini i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px;border:2px solid}
 .legmini i.ya{background:#e3eefa;border-color:#7fa9d6}.legmini i.dup{background:#fff4d1;border-color:#f08a24}.legmini i.sel{background:var(--red);border-color:var(--red)}
+.tcard.mia{padding:12px 14px;margin-bottom:8px;border-left-width:6px}
+.tcard.mia .tmhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}
+.tcard.mia .tlug{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--red-dark)}
+.tcard.mia .tpills{margin:0;gap:4px}.tcard.mia .tpills .pill{font-size:12px;padding:2px 8px}
+.tcard.mia .tt{font-family:var(--f-body);font-size:17px;text-transform:none;letter-spacing:0;line-height:1.25;margin-top:4px}
+.tcard.mia .tdevuelta{font-size:14px;padding:6px 10px}
+.tacc{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.tacc .btn{min-height:42px;flex:1 1 0;white-space:nowrap}.tacc .linkbtn{flex:1 0 100%;padding:0;text-align:left}
+[data-tarpedir]{white-space:nowrap;flex:none}
 @media (max-width:900px){.kan,.side,.catgrid{grid-template-columns:1fr}}
 </style>
 </head>

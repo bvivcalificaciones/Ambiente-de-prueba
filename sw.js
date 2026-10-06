@@ -1,9 +1,9 @@
 // Service worker: muestra las notificaciones, permite instalar la app y la guarda en cada dispositivo.
 // La app (la "cáscara": HTML, JS, íconos) se sirve desde lo guardado: abrirla no gasta tráfico de Netlify.
 // Los datos siempre se piden en vivo a Supabase.
-// IMPORTANTE: en cada actualización hay que cambiar CACHE (v20 → v21…). Así los dispositivos detectan la versión
+// IMPORTANTE: en cada actualización hay que cambiar CACHE (v21 → v22…). Así los dispositivos detectan la versión
 // nueva, la descargan una sola vez y se recargan solos cuando nadie está usando la app.
-const CACHE = 'bviv-v20';
+const CACHE = 'bviv-v21';
 const SHELL = ['./', 'index.html', 'app.js', 'docs.js', 'sirena.js', 'grados.js', 'alertas.js', 'help.js', 'calif.js', 'legajo.js', 'tareas.js', 'sci.js', 'epp.js', 'vendor/pdf-lib.min.js', 'config.js', 'manifest.webmanifest', 'icons/escudo-128.png', 'icons/escudo-400.png', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {

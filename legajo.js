@@ -145,10 +145,8 @@ function vLegajo(viewer, mine){
   const tab = S.legTab === 'priv' && D.priv ? 'priv' : 'inst';
   const ubic = p.cargo || (p.g ? 'Guardia ' + p.g : 'Sin guardia');
   const ingreso = p.cat === 'Aspirante' ? `Aspirante${L.asp ? ' desde ' + L.asp.slice(0, 4) : ''}` : L.efe ? `Bombero efectivo desde ${L.efe.slice(0, 4)}` : 'Bombero';
-  const fotoOk = D.cons && D.cons.foto;
   const foto = L.foto ? `<img class="foto" src="${esc(L.foto)}" alt="Foto de ${esc(nice(D.n))}">` : `<div class="foto">${iniciales(D.n)}</div>`;
-  const fotoBtns = D.editor && !mine ? (fotoOk ? `<div class="row" style="gap:6px;margin-top:8px;justify-content:center"><label class="btn small outline filebtn">${L.foto ? 'Cambiar foto' : 'Cargar foto'}<input type="file" id="legfoto" accept="image/*"></label>${L.foto ? '<button class="btn small" id="legfotodel">Quitar</button>' : ''}</div>`
-    : '<p class="meta" style="margin:6px 0 0;max-width:120px;text-align:center;font-size:12px">La foto requiere autorización en el consentimiento.</p>') : '';
+  const fotoBtns = D.editor || mine ? `<div class="row" style="gap:6px;margin-top:8px;justify-content:center"><label class="btn small outline filebtn">${L.foto ? 'Cambiar foto' : 'Cargar foto'}<input type="file" id="legfoto" accept="image/*"></label>${L.foto ? '<button class="btn small" id="legfotodel">Quitar</button>' : ''}</div>` : '';
   return `<div class="who"><div><span class="label">${mine ? 'Mi legajo' : 'Panel · Legajos'}</span><h2>${mine ? 'Mi legajo' : 'Legajo de ' + esc(nice(D.n))}</h2></div>
     <span class="row" style="gap:8px">${mine ? '<button class="btn outline small" data-mode="">Volver</button>' : '<button class="btn outline small" id="legback">← Volver a la lista</button>'}<button class="btn primary small" id="legpdf">Foja de servicios (PDF)</button></span></div>
   <div class="lhead"><div class="lfoto">${foto}${fotoBtns}</div><div style="min-width:0"><div class="lname">${esc(nombreConGrado(D.n))}</div>
@@ -266,7 +264,7 @@ function vLegPriv(D, mine){
   const docs = X.docs, verD = c => c.arch ? `<button class="linkbtn" data-legarch="${c.id}">Ver ${c.mime === 'application/pdf' ? 'PDF' : 'foto'}</button>` : '<span class="meta">—</span>';
   const g = d.grupo ? d.grupo + (d.factor || '') : null;
   return `${lock}
-  <div class="consbar"><span class="pill green">Consentimiento firmado el ${dmy(d.fecha)}</span><span class="tags">${aut(d.salud, 'Datos de salud')}${aut(d.emergencia, 'Informar en emergencias')}${aut(d.foto, 'Foto')}</span>
+  <div class="consbar"><span class="pill green">Consentimiento firmado el ${dmy(d.fecha)}</span><span class="tags">${aut(d.salud, 'Datos de salud')}${aut(d.emergencia, 'Informar en emergencias')}</span>
     ${jefe && !editCons ? '<span class="row" style="gap:6px;margin-left:auto"><button class="btn small outline" data-legedit="cons">Modificar autorizaciones</button><button class="btn small" id="legrevocar">Retirar consentimiento</button></span>' : ''}</div>
   ${editCons ? vLegConsForm(d) : ''}
   ${editPriv ? vLegPrivForm(d) : `<div class="grid2">
@@ -295,10 +293,9 @@ function vLegConsForm(d){
     <span class="label" style="display:block;margin-top:14px">Lo que autorizó (según lo que marcó en el papel)</span>
     <label class="check"><input type="checkbox" id="lc_s" ${!d || d.salud ? 'checked' : ''}> Datos de salud (grupo sanguíneo, alergias, medicación, apto físico)</label>
     <label class="check"><input type="checkbox" id="lc_e" ${!d || d.emergencia ? 'checked' : ''}> Informar sus datos de salud imprescindibles al servicio que lo atienda en una emergencia</label>
-    <label class="check"><input type="checkbox" id="lc_fo" ${!d || d.foto ? 'checked' : ''}> Foto en el legajo</label>
     <div class="field"><span class="label">Consentimiento escaneado o foto (opcional)</span>
       <div class="row" style="align-items:center;gap:10px"><label class="btn small outline filebtn">${f ? 'Cambiar archivo' : 'Elegir archivo'}<input type="file" id="lc_file" accept="image/*,application/pdf"></label><span class="meta">${f ? 'Listo para subir: ' + esc(f.nombre) : 'Sin archivo'}</span></div></div>
-    ${d ? '<p class="demo" style="margin:10px 0 0">Si sacás la autorización de salud, se borran los datos médicos y sus documentos. Si sacás la de foto, se borra la foto.</p>' : ''}
+    ${d ? '<p class="demo" style="margin:10px 0 0">Si sacás la autorización de salud, se borran los datos médicos y sus documentos.</p>' : ''}
     <div class="row" style="margin-top:14px"><button class="btn primary" id="legsavecons">${d ? 'Guardar' : 'Registrar'}</button>${d ? '<button class="btn" id="legcancel">Cancelar</button>' : ''}</div></div>`;
 }
 function vLegPrivForm(d){
@@ -440,17 +437,17 @@ async function legajoAction(t){
   if(d.legarch){ legAbrirArchivo(+d.legarch); return true; }
   if(t.id === 'legfotodel'){ if(!confirmTwice(t, 'Tocá de nuevo para quitar la foto.')) return true; await legDo('legajo_foto', { pid, data: null }, 'Foto quitada.'); return true; }
   if(t.id === 'legsavecons'){
-    const datos = { fecha: $('#lc_f').value, salud: $('#lc_s').checked, emergencia: $('#lc_e').checked, foto: $('#lc_fo').checked };
+    const datos = { fecha: $('#lc_f').value, salud: $('#lc_s').checked, emergencia: $('#lc_e').checked, foto: true };
     if(!datos.fecha){ toast('Indicá la fecha de firma.'); return true; }
     const prev = S.legP && S.legP.datos;
-    if(prev && ((prev.salud && !datos.salud) || (prev.foto && !datos.foto)) && !confirmTwice(t, 'Se van a borrar datos (salud o foto). Tocá de nuevo para confirmar.')) return true;
+    if(prev && prev.salud && !datos.salud && !confirmTwice(t, 'Se van a borrar los datos de salud. Tocá de nuevo para confirmar.')) return true;
     const file = S.legFile;
     if(!await legDo('legajo_consentimiento', { pid, datos }, prev ? 'Autorizaciones actualizadas.' : 'Consentimiento registrado. Ya podés cargar los datos.')) return true;
     if(file) await legDo('legajo_archivo_guardar', { pid, datos: { clase: 'consent', t: 'Consentimiento firmado', f: datos.fecha, arch: file } }, 'Consentimiento escaneado guardado.');
     S.legEdit = null; S.legFile = null; render(); return true;
   }
   if(t.id === 'legrevocar'){
-    if(!confirmTwice(t, 'Se borran todos sus datos personales y médicos, sus documentos y la foto. Tocá de nuevo para confirmar.')) return true;
+    if(!confirmTwice(t, 'Se borran todos sus datos personales y médicos y sus documentos. Tocá de nuevo para confirmar.')) return true;
     await legDo('legajo_revocar', { pid }, 'Consentimiento retirado. Se borraron los datos personales y médicos.'); return true;
   }
   if(t.id === 'legsavepriv'){

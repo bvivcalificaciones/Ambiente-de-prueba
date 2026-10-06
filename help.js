@@ -41,10 +41,10 @@ const AYUDA = {
     'Más abajo podés elegir y probar el sonido de las alertas en este dispositivo.']],
   alertasIn: ['Alertas', [
     '<b>Alerta amarilla:</b> si estás disponible tocá Me pongo en apresto. Podés dejar una nota, por ejemplo "llego en 20 min". Si cambia tu situación, tocá Salir del apresto.',
-    '<b>Alerta roja:</b> la jefatura elige quiénes van entre los que están en apresto. Si te designan, te llega un aviso y acá ves el lugar de encuentro y la hora de salida.',
+    '<b>Alerta roja:</b> la jefatura o un superior elige quiénes van entre los que están en apresto. Si te designan, te llega un aviso y acá ves el lugar de encuentro y la hora de salida.',
     '<b>Silenciar</b> corta el sonido de la alerta en este dispositivo.']],
   alertasPuede: 'Jefatura y superiores emiten la alerta con Emitir alerta amarilla, y la finalizan o cancelan cuando termina.',
-  alertasRoja: 'Solo jefatura: Pasar a alerta roja, marcá quiénes van y completá encuentro, salida y unidades. En Configuración se editan los tipos de alerta y los tonos para todos.',
+  alertasRoja: 'Pasar a alerta roja (jefatura y superiores): marcá quiénes van y completá encuentro, salida y unidades. En Configuración (jefatura y administradores) se editan los tipos de alerta y los tonos para todos.',
   sciHid: ['Hidráulica', [
     'Elegí la salida, la presión en punta, el caudal, la manguera, los tramos y el desnivel. Se calcula la presión de trabajo en la bomba y la autonomía del tanque.',
     'Son cálculos de referencia: el manómetro y las indicaciones del fabricante tienen prioridad.']],

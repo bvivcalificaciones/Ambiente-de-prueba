@@ -74,14 +74,15 @@ function tarCard(t, modo){
   const atr = tarAtrasada(t), cls = t.e === 'revision' ? 'rev' : t.e === 'aprobada' ? 'ok' : t.e === 'en_curso' ? 'cur' : atr ? 'atr' : t.urg ? 'urg' : '';
   const pills = [t.urg && tarAbierta(t) ? '<span class="pill red">Urgente</span>' : '', atr ? '<span class="pill orange">Atrasada</span>' : '',
     t.e === 'en_curso' ? '<span class="pill blue">En curso</span>' : '', t.e === 'revision' && modo === 'mia' ? '<span class="pill yellow">Para revisar</span>' : '',
-    t.e === 'aprobada' ? '<span class="pill green">Hecha</span>' : '', t.ped ? '<span class="pill">Pedida</span>' : ''].join('');
+    t.e === 'aprobada' ? '<span class="pill green">Hecha</span>' : '', t.ped ? '<span class="pill">Pedida</span>' : '',
+    t.com && t.e === 'pendiente' ? '<span class="pill redsoft">Devuelta</span>' : ''].join('');
   const it = tarItem(t.i) || { t: 0, l: 0 };
   const quien = modo === 'mia' ? (t.ped ? 'Te la anotaste vos' : `Asignó ${esc(nice(t.por || ''))}`) : `${esc(nice(t.n))}${t.ped ? ' · se la anotó' : t.por ? ' · asignó ' + esc(nice(t.por)) : ''}`;
   let acc = '';
   if(modo === 'mia'){
-    if(t.e === 'pendiente') acc = `<div class="row" style="gap:8px"><button class="btn primary" style="flex:1" data-tarini="${t.id}">Empezar</button><button class="btn outline" data-tarfin="${t.id}">Ya la hice</button></div>`;
-    if(t.e === 'en_curso') acc = `<button class="btn go big" style="margin-top:10px;padding:14px" data-tarfin="${t.id}">Terminar</button>`;
-    if(t.ped && (t.e === 'pendiente' || t.e === 'en_curso')) acc += `<button class="linkbtn" id="tarcan${t.id}" data-tarcan="${t.id}">Dejarla</button>`;
+    const dejar = t.ped && (t.e === 'pendiente' || t.e === 'en_curso') ? `<button class="linkbtn" id="tarcan${t.id}" data-tarcan="${t.id}">Dejarla</button>` : '';
+    if(t.e === 'pendiente') acc = `<div class="tacc"><button class="btn primary small" data-tarini="${t.id}">Empezar</button><button class="btn outline small" data-tarfin="${t.id}">Ya la hice</button>${dejar}</div>`;
+    if(t.e === 'en_curso') acc = `<div class="tacc"><button class="btn go small" data-tarfin="${t.id}">Terminar</button>${dejar}</div>`;
   } else if(modo === 'rev'){
     acc = `${t.foto ? (S.tarFotos?.[t.id] ? `<img class="tfoto" src="${esc(S.tarFotos[t.id])}" alt="Foto de la tarea">` : `<button class="btn small outline" data-tarfoto="${t.id}">Ver foto</button>`) : '<span class="meta">Sin foto</span>'}
       ${t.nota ? `<p class="tnota">“${esc(t.nota)}”</p>` : ''}
@@ -94,6 +95,9 @@ function tarCard(t, modo){
   }
   const sub = modo === 'mia' && t.e === 'revision' ? `Terminada ${tarFecha(t.fin)} · la revisa un superior de tu guardia.`
     : modo === 'tab' && t.e === 'en_curso' && t.ini ? `desde ${fmtD(loc(t.ini)).slice(6)}` : modo === 'tab' && t.e === 'aprobada' && t.rev ? `aprobó ${esc(nice(t.rev))}` : '';
+  if(modo === 'mia') return `<div class="tcard mia ${cls}"><div class="tmhead"><span class="tlug">${esc(tarLugar(it).n)}</span>${pills ? `<span class="tpills">${pills}</span>` : ''}</div>
+    <div class="tt">${esc(tarTipo(it).n)}</div><div class="meta">${quien}${sub ? ' · ' + sub : ''}</div>
+    ${t.com && t.e === 'pendiente' ? `<div class="tdevuelta"><b>Qué falta:</b> ${esc(t.com)}</div>` : ''}${acc}</div>`;
   return `<div class="tcard ${cls}">${pills ? `<div class="tpills">${pills}</div>` : ''}
     <div class="tt">${esc(tarTipo(it).n)}</div><div class="tu">${esc(tarLugar(it).n)}</div>
     <div class="meta">${quien}${tarAbierta(t) && modo !== 'mia' ? ` · hasta ${tarFecha(t.pl)}` : ''}${sub ? ' · ' + sub : ''}</div>
@@ -126,9 +130,9 @@ function vMisTareas(b){
   ${C ? `<div class="card" style="margin-bottom:14px"><div class="top"><h3 style="margin:0">Mi cumplimiento</h3><span class="pill ${C.pct >= 80 ? 'green' : C.pct >= 60 ? 'yellow' : 'red'}">${Math.round(C.pct)} %</span></div>
     <div class="prog"><i style="width:${Math.round(C.pct)}%;background:${calCol(C.pct)}"></i></div>
     <div class="meta">${C.apr} de ${C.asig} asignadas hechas en el semestre${C.ped ? ` · +${C.ped} pedida${C.ped > 1 ? 's' : ''} por iniciativa` : ''}. Suma en tu calificación.</div></div>` : ''}
-  <div class="section-h" style="margin:8px 0"><h3 style="margin:0">Para hacer</h3><span class="demo">Hasta el miércoles 20:00</span></div>
+  <div class="section-h" style="margin:8px 0"><h3 style="margin:0">Para hacer${hacer.length ? ` <span class="pill">${hacer.length}</span>` : ''}</h3><span class="demo">Hasta el miércoles 20:00</span></div>
   ${hacer.map(t => tarCard(t, 'mia')).join('') || '<div class="card off"><p style="margin:0">No tenés tareas pendientes. Podés pedir una abajo.</p></div>'}
-  ${rev.length ? `<div class="section-h" style="margin:18px 0 8px"><h3 style="margin:0">En revisión</h3></div>${rev.map(t => tarCard(t, 'mia')).join('')}` : ''}
+  ${rev.length ? `<div class="section-h" style="margin:18px 0 8px"><h3 style="margin:0">En revisión <span class="pill">${rev.length}</span></h3></div>${rev.map(t => tarCard(t, 'mia')).join('')}` : ''}
   <div class="section-h" style="margin:20px 0 8px"><h3 style="margin:0">Podés pedir</h3><span class="demo">Suman como iniciativa</span></div>
   <div class="card">${sug.length ? `<ul class="list">${sug.map(x => fila(x.it)).join('')}</ul>` : '<p class="meta" style="margin:0">No hay tareas periódicas vencidas ahora.</p>'}
     <button class="linkbtn" style="margin-top:8px" id="tarcat">${S.tarCat ? 'Ocultar el catálogo' : 'Ver todo el catálogo'}</button>${cat}</div>
