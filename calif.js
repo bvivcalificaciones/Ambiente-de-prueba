@@ -1,6 +1,6 @@
 /* =====================================================================
    CALIFICACIÓN ANUAL · Decreto 957/04 (Ley 8058), inciso D
-    · Asistencia (0 a 5): la calcula la app con cinco partes y sus pesos (editables por jefatura):
+    · Asistencia (0 a 5): la calcula la app con seis partes (la sexta, tareas) y sus pesos (editables por jefatura):
       guardias, capacitación y mantenimiento de guardia, asistencia general,
       novedades con asistencia (convocatorias) y alertas.
     · Vocación, capacidad técnico-profesional y cualidades personales (0 a 5): las marca la junta.
@@ -8,7 +8,8 @@
     · Concepto: 19-20 Excelente · 16-18 Muy bueno · 10-15 Bueno · 0-9 Insuficiente.
    ===================================================================== */
 const CAL_PER = { s1: ['1.er semestre', '01-01', '06-30'], s2: ['2.º semestre', '07-01', '12-31'], anio: ['Año completo', '01-01', '12-31'] };
-const CAL_COMP = [['guardias', 'Guardias'], ['gm', 'Capacitación y mantenimiento de guardia'], ['ag', 'Asistencia general'], ['novedades', 'Novedades con asistencia'], ['alertas', 'Alertas']];
+const CAL_COMP = [['guardias', 'Guardias'], ['gm', 'Capacitación y mantenimiento de guardia'], ['ag', 'Asistencia general'], ['novedades', 'Novedades con asistencia'], ['alertas', 'Alertas'], ['tareas', 'Tareas']];
+const calPeso = (W, k) => W[k] ?? 1;   // las partes nuevas arrancan con peso 1
 const CAL_ESC = [[100, 5], [80, 4], [60, 3], [40, 2], [25, 1], [0, 0]];
 const CAL_APREC = ['Excelente', 'Muy bueno', 'Bueno', 'Regular', 'Insuficiente'];
 const CAL_OF = [['comp', 'Competencia funcional y de gobierno'], ['adm', 'Labor administrativa'], ['gen', 'Concepto general']];
@@ -19,13 +20,15 @@ const calCptCls = c => ({ Excelente: 'c-ex', 'Muy bueno': 'c-mb', Bueno: 'c-b', 
 const calCol = p => p >= 80 ? 'var(--green)' : p >= 60 ? '#f08a24' : 'var(--red)';
 const calPerDefault = () => new Date().getMonth() < 6 ? 's1' : 's2';
 function calRango(anio, per){ const [l, a, b] = CAL_PER[per]; return { desde: `${anio}-${a}`, hasta: `${anio}-${b}`, label: l, factor: per === 'anio' ? 2 : 1, per, anio }; }
-const calCfg = () => (S.calD && S.calD.cfg) || { metas: { ag: 60, gm: 20 }, pesos: { guardias: 1, gm: 1, ag: 1, novedades: 2, alertas: 2 } };
+const calCfg = () => (S.calD && S.calD.cfg) || { metas: { ag: 60, gm: 20 }, pesos: { guardias: 1, gm: 1, ag: 1, novedades: 2, alertas: 2, tareas: 1 } };
 const esOficial = n => GRADOS_OF.includes((S.jer || {})[n]);
 const calSujetos = () => active().filter(p => !p.cargo).sort((a, b) => (a.g || 9) - (b.g || 9) || a.n.localeCompare(b.n, 'es'));
 
 async function calLoad(anio){
   const tok = tokNow(); if(!tok) return;
-  try { S.calD = await rpc('calif_datos', { tok, desde: `${anio}-01-01`, hasta: `${anio}-12-31` }); S.calAnio = anio; }
+  try {
+    const [d, t] = await Promise.all([rpc('calif_datos', { tok, desde: `${anio}-01-01`, hasta: `${anio}-12-31` }), rpc('tareas_calif', { tok, desde: `${anio}-01-01`, hasta: `${anio}-12-31` }).catch(() => ({}))]);
+    d.tareas = t || {}; S.calD = d; S.calAnio = anio; }
   catch(e){ toast(e.message); }
 }
 
@@ -68,8 +71,16 @@ function calAsistencia(b, R){
     const si = items.filter(esta).length, falta = items.filter(x => !esta(x));
     c[k] = { pct: si / items.length * 100, det: `${si} de ${items.length} ${txt}${falta.length && falta.length <= 3 ? ' · faltó: ' + falta.map(x => x.t).join(', ') : ''}` };
   }
+  // 6) tareas: asignadas hechas sobre asignadas con plazo en el período; las pedidas suman como extra (hasta 100 %)
+  {
+    const T = (D.tareas || {})[p.id], en = f => f >= R.desde && f <= finR;
+    if(T){
+      const apr = T.apr.filter(en).length, inc = T.inc.filter(en).length, ped = T.ped.filter(en).length, asig = apr + inc;
+      if(asig || ped) c.tareas = { pct: asig ? Math.min(100, (apr + ped) / asig * 100) : 100, det: `${apr} de ${asig} asignadas hechas${inc ? ` · ${inc} sin hacer` : ''}${ped ? ` · +${ped} pedida${ped > 1 ? 's' : ''}` : ''}` };
+    }
+  }
   let sw = 0, sp = 0;
-  for(const [k] of CAL_COMP) if(c[k] && +W[k] > 0){ sw += +W[k]; sp += +W[k] * c[k].pct; }
+  for(const [k] of CAL_COMP) if(c[k] && +calPeso(W, k) > 0){ sw += +calPeso(W, k); sp += +calPeso(W, k) * c[k].pct; }
   const pct = sw ? sp / sw : 0;
   return { comps: c, pct, pts: calPts(pct) };
 }
@@ -81,7 +92,7 @@ function calTip(A){
   const k = peor[0], cfg = calCfg();
   const sug = { guardias: 'registrá todas tus noches de guardia antes de las 20:00 o dejá reemplazo',
     gm: 'cargá tus horas de capacitación y mantenimiento de guardia', ag: 'sumá horas de asistencia general en el cuartel',
-    novedades: 'anotate y asistí a las convocatorias', alertas: 'ponete en apresto cuando haya una alerta' }[k];
+    novedades: 'anotate y asistí a las convocatorias', alertas: 'ponete en apresto cuando haya una alerta', tareas: 'terminá las tareas asignadas antes del miércoles o pedí alguna' }[k];
   const sig = CAL_ESC.slice().reverse().find(([m, v]) => v === A.pts + 1);
   return `<b>Para llegar a ${A.pts + 1} punto${A.pts ? 's' : ''}</b> necesitás ${sig ? sig[0] : 100} % de cumplimiento. Lo que más te baja: <b>${peor[1].toLowerCase()}</b>: ${sug}.`;
 }
@@ -114,7 +125,7 @@ function calComps(A){
   return CAL_COMP.map(([k, n]) => { const x = A.comps[k];
     if(!x) return `<div class="ci"><b>${n}</b><span class="v" style="color:var(--muted)">—</span><div class="det">No corresponde en este período</div></div>`;
     const pc = Math.round(x.pct);
-    return `<div class="ci"><b>${n} <span class="meta">· peso ${W[k]}</span></b><span class="v">${pc} %</span><div class="bar2"><i style="width:${pc}%;background:${calCol(pc)}"></i></div><div class="det">${esc(x.det)}</div></div>`; }).join('');
+    return `<div class="ci"><b>${n} <span class="meta">· peso ${calPeso(W, k)}</span></b><span class="v">${pc} %</span><div class="bar2"><i style="width:${pc}%;background:${calCol(pc)}"></i></div><div class="det">${esc(x.det)}</div></div>`; }).join('');
 }
 
 /* ---------- panel de jefatura (junta calificadora) ---------- */
@@ -136,7 +147,7 @@ function vCalifPanel(viewer){
     <div class="row"><div class="field"><label class="label" for="cm_ag">Asistencia general (h por semestre)</label><input id="cm_ag" type="number" min="1" value="${cfg.metas.ag}"></div>
     <div class="field"><label class="label" for="cm_gm">Cap. y mant. de guardia (h por semestre)</label><input id="cm_gm" type="number" min="1" value="${cfg.metas.gm}"></div></div>
     <span class="label" style="display:block;margin-top:12px">Peso de cada parte en el porcentaje de asistencia</span>
-    <div class="row">${CAL_COMP.map(([k, n]) => `<div class="field"><label class="label" for="cw_${k}">${n}</label><input id="cw_${k}" type="number" min="0" max="10" value="${cfg.pesos[k]}"></div>`).join('')}</div>
+    <div class="row">${CAL_COMP.map(([k, n]) => `<div class="field"><label class="label" for="cw_${k}">${n}</label><input id="cw_${k}" type="number" min="0" max="10" value="${calPeso(cfg.pesos, k)}"></div>`).join('')}</div>
     <p class="demo" style="margin:8px 0 0">Las guardias, alertas y novedades se miden contra lo asignado o convocado. Las horas, contra la meta (en el año completo, la meta se duplica). Peso 0 = no cuenta. Al guardar, todos los porcentajes se recalculan y el cambio queda en el historial.</p>
     <button class="btn primary" style="margin-top:12px" id="calcfgsave">Guardar metas y pesos</button></div>` : '';
   const kpis = anual ? `<div class="kpis"><div class="kpi"><div class="n">${filas.length}</div><div class="k">a calificar (sin Jefe ni Sub Jefe)</div></div><div class="kpi"><div class="n">${cnt('Excelente')}</div><div class="k">Excelente</div></div><div class="kpi"><div class="n">${cnt('Muy bueno')}</div><div class="k">Muy bueno</div></div><div class="kpi"><div class="n">${cnt('Bueno')}</div><div class="k">Bueno</div></div><div class="kpi warn"><div class="n">${cnt('Insuficiente')}</div><div class="k">Insuficiente → quedan observados</div></div>${falt ? `<div class="kpi warn"><div class="n">${falt}</div><div class="k">faltan rubros de la junta</div></div>` : ''}</div>` : '';

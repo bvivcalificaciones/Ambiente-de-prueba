@@ -67,6 +67,11 @@ function vSCI(){
 }
 
 /* ---------- hidráulica ---------- */
+// En la calculadora, solo las unidades con bomba o tanque cargados (ambulancias, jefatura, etc. no aparecen).
+function unBomba(un, sel){
+  const con = un.map((x, i) => [i, x.n, x]).filter(([i, n, x]) => x.caudal || x.pmax || x.tanque || String(i) === String(sel));
+  return (con.length ? con : un.map((x, i) => [i, x.n, x])).map(([i, n]) => [i, n]);
+}
 function vHidraulica(){
   const H = S.hyd, c = sciCfg();
   const npOpts = LANZA_NP[H.lanza].map(([b, t]) => [b, `${fmtP(b)} · ${t}`]);
@@ -95,7 +100,7 @@ function vHidraulica(){
       <div class="field"><label class="label" for="h_lineas">Líneas iguales</label><input id="h_lineas" type="number" min="1" max="6" value="${H.lineas}" inputmode="numeric"></div>
     </div>
     <div class="row">
-      <div class="field"><label class="label" for="h_unidad">Unidad</label>${sel('h_unidad', [['', un.length ? 'Elegir…' : 'Sin unidades cargadas'], ...un.map((x, i) => [i, x.n])], H.unidad)}</div>
+      <div class="field"><label class="label" for="h_unidad">Unidad</label>${sel('h_unidad', [['', un.length ? 'Elegir…' : 'Sin unidades cargadas'], ...unBomba(un, H.unidad)], H.unidad)}</div>
       <div class="field"><label class="label" for="h_tanque">Agua en tanque (L)</label><input id="h_tanque" type="number" min="0" max="50000" value="${H.tanque}" placeholder="${H.unidad !== '' && un[H.unidad] ? un[H.unidad].tanque : 'Ej.: 3000'}" inputmode="numeric"></div>
     </div>
   </div>
@@ -327,7 +332,8 @@ function vSciCfg(){
     <div class="field"><label class="label" for="sc2_p">Unidad de presión por defecto</label>${sel('sc2_p', [['bar', 'bar'], ['kg', 'kg/cm²'], ['psi', 'psi']], E.presion)}</div>
     <div class="field"><label class="label" for="sc2_t">Metros por tramo de manguera</label><input id="sc2_t" type="number" min="1" max="100" value="${E.tramo}"></div>
     <div class="field"><label class="label" for="sc2_id">Identificación en los partes</label><input id="sc2_id" value="${esc(E.ident || '')}" placeholder="Ej.: Isla Verde 68/8"></div></div></div>
-  <div class="card" style="margin-bottom:16px"><h3>Unidades (camiones)</h3>
+  <div class="card" style="margin-bottom:16px"><h3>Unidades</h3>
+    <p class="meta" style="margin:0 0 8px">Todos los vehículos que pueden salir a una intervención: autobombas, ambulancias, jefatura, trailer… Tanque, caudal y presión solo hacen falta en los que tienen bomba (los usa la calculadora). Estas unidades también aparecen en el catálogo de Tareas.</p>
     <div class="tablewrap"><table><thead><tr><th>Nombre</th><th>Tipo (para el parte)</th><th>Tanque (L)</th><th>Caudal máx. bomba (L/min)</th><th>Presión máx. bomba (bar)</th><th></th></tr></thead><tbody>
     ${E.unidades.map((u, i) => `<tr><td><input class="tin" data-cu="${i}" data-k="n" value="${esc(u.n)}"></td><td><input class="tin" data-cu="${i}" data-k="tipo" value="${esc(u.tipo || '')}" placeholder="Ej.: incendio/rescate"></td><td><input class="tin" type="number" data-cu="${i}" data-k="tanque" value="${u.tanque ?? ''}"></td>
       <td><input class="tin" type="number" data-cu="${i}" data-k="caudal" value="${u.caudal ?? ''}"></td><td><input class="tin" type="number" step="0.5" data-cu="${i}" data-k="pmax" value="${u.pmax ?? ''}"></td>

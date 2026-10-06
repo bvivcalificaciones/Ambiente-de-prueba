@@ -538,7 +538,7 @@ function pdfCalificacion(viewer){ return generar(async () => {
   d.header(anual ? 'ACTA DE CALIFICACIÓN ANUAL' : 'CONTROL SEMESTRAL DE ASISTENCIA', anual ? `Año ${anio}${cerrada ? '' : ' · BORRADOR'}` : `${R.label} ${anio}`, [
     ['Período', `${fechaL(R.desde)} al ${fechaL(R.hasta)}`], ['Integrantes', String(filas.length)],
     ['Metas por semestre', `${cfg.metas.ag} h asist. general · ${cfg.metas.gm} h cap./mant. de guardia`],
-    ['Pesos', CAL_COMP.map(([k]) => `${{ guardias: 'Guardias', gm: 'Cap./mant.', ag: 'Asist. gral.', novedades: 'Novedades', alertas: 'Alertas' }[k]} ${cfg.pesos[k]}`).join(' · ')]]);
+    ['Pesos', CAL_COMP.map(([k]) => `${{ guardias: 'Guardias', gm: 'Cap./mant.', ag: 'Asist. gral.', novedades: 'Novedades', alertas: 'Alertas', tareas: 'Tareas' }[k]} ${calPeso(cfg.pesos, k)}`).join(' · ')]]);
   if(anual){
     const cnt = c => filas.filter(r => r.tot != null && calConcepto(r.tot) === c).length;
     d.kpis([[String(cnt('Excelente')), 'Excelente (19-20)'], [String(cnt('Muy bueno')), 'Muy bueno (16-18)'], [String(cnt('Bueno')), 'Bueno (10-15)'], [String(cnt('Insuficiente')), 'Insuficiente (0-9) · observados', true]]);
@@ -554,11 +554,11 @@ function pdfCalificacion(viewer){ return generar(async () => {
     const ofs = filas.filter(r => esOficial(r.p.n));
     if(ofs.length){ d.section('Calificación exclusiva para oficiales');
       d.table([{ h: 'Oficial' }, ...CAL_OF.map(([k, n]) => ({ h: n, w: 120 }))], ofs.map(r => [r.p.n, ...CAL_OF.map(([k]) => (r.f.of || {})[k] || '—')]), { size: 7.5 }); }
-    d.note('Asistencia calculada por la app: guardias, capacitación y mantenimiento de guardia, asistencia general, convocatorias de novedades y alertas, ponderadas con los pesos indicados. Escala: 100 % = 5 · 80-99 % = 4 · 60-79 % = 3 · 40-59 % = 2 · 25-39 % = 1 · menos de 25 % = 0. * Asistencia corregida por la junta. Concepto: 19-20 Excelente, 16-18 Muy bueno, 10-15 Bueno, 0-9 Insuficiente (queda observado el período siguiente). Decreto 957/04, Ley 8058.');
+    d.note('Asistencia calculada por la app: guardias, capacitación y mantenimiento de guardia, asistencia general, convocatorias de novedades, alertas y tareas, ponderadas con los pesos indicados. Escala: 100 % = 5 · 80-99 % = 4 · 60-79 % = 3 · 40-59 % = 2 · 25-39 % = 1 · menos de 25 % = 0. * Asistencia corregida por la junta. Concepto: 19-20 Excelente, 16-18 Muy bueno, 10-15 Bueno, 0-9 Insuficiente (queda observado el período siguiente). Decreto 957/04, Ley 8058.');
     d.firmas([{ label: 'Jefe del Cuerpo Activo', name: jefatura().jefe ? nombreConGrado(jefatura().jefe.n) : '' }, { label: 'Sub Jefe del Cuerpo Activo', name: jefatura().sub ? nombreConGrado(jefatura().sub.n) : '' }, { label: 'Presidente / Comisión Directiva' }]);
   } else {
     d.section('Asistencia por parte');
-    d.table([{ h: 'Integrante' }, ...CAL_COMP.map(([k, n]) => ({ h: n.replace('Capacitación y mantenimiento de guardia', 'Cap./mant. guardia').replace('Novedades con asistencia', 'Novedades'), w: 58, align: 'right' })), { h: 'Total', w: 40, align: 'right' }, { h: 'Puntos', w: 38, align: 'center' }],
+    d.table([{ h: 'Integrante' }, ...CAL_COMP.map(([k, n]) => ({ h: n.replace('Capacitación y mantenimiento de guardia', 'Cap./mant. guardia').replace('Novedades con asistencia', 'Novedades'), w: 50, align: 'right' })), { h: 'Total', w: 40, align: 'right' }, { h: 'Puntos', w: 38, align: 'center' }],
       filas.map(r => [r.p.n, ...CAL_COMP.map(([k]) => { const x = r.A.comps[k]; return x ? { t: Math.round(x.pct) + ' %', color: x.pct < 60 ? 'red' : 'ink', bold: x.pct < 60 } : { t: '—', color: 'gray' }; }),
         { t: Math.round(r.A.pct) + ' %', bold: true }, { t: String(r.A.pts), bold: true }]), { size: 7.5, rh: 14 });
     d.note('Control de mitad de año: solo la asistencia. En rojo, las partes por debajo del 60 %. Las horas se miden contra la meta del semestre.');
