@@ -77,7 +77,7 @@ function applyPrivate(d){
   S.log=d.log.map(x=>({ts:loc(x.ts),by:x.by||'Sistema',txt:x.txt}));
   NS=null;
 }
-function clearPrivate(){legReset();S.tar=null;S.tarFin=null;S.tarHecha=null;S.tarA=null;S.tarFotos=null;S.tarDev=null;S.tarTab=null;S.tarG=null;S.tarU=null;S.tarQ=null;S.tarCL=null;S.tarCat=false;S.tarTipos=false;S.calD=null;S.calSel=null;S.alr=null;S.navis=null;S.sci=null;S.epp=null;S.sciSel=null;S.sciEdit=null;S.eppForm=null;S.eppCat=null;S.privRoster=false;S.guardias=[];S.horas=[];S.log=[];S.ficha=null;S.pmsg=null;NS=null}
+function clearPrivate(){legReset();S.calD=null;S.calSel=null;S.alr=null;S.navis=null;S.sci=null;S.epp=null;S.sciSel=null;S.sciEdit=null;S.eppForm=null;S.eppCat=null;S.privRoster=false;S.guardias=[];S.horas=[];S.log=[];S.ficha=null;S.pmsg=null;NS=null}
 async function loadPublic(){try{applyPublic(await rpc('publico'));}catch(e){S.netErr=e.message}}
 async function reload(){
   await loadPublic();
@@ -355,7 +355,6 @@ function vGuardiaMe(){
   if(S.mode==='panel'&&hasRole(b))return vPanel(b,true);
   if(S.mode==='calif')return vMiCalif(b);
   if(S.mode==='legajo')return vMiLegajo(b);
-  if(S.mode==='tareas')return vMisTareas(b);
   if(S.mode==='news')return `<div class="who"><div><span class="label">Novedades</span><h2>Novedades</h2></div><button class="btn outline small" data-mode="">Volver</button></div>${vNews(b,true)}`;
   let nightsArr=[];
   if(hasG){let wStart=n;
@@ -382,7 +381,7 @@ function vGuardiaMe(){
       <div class="row"><div class="field"><label class="label" for="ai_h">Inicio</label>${horaSel('ai',actIni)}</div>
       <div class="field"><label class="label" for="af_h">Fin</label>${horaSel('af',actFin)}</div></div>
       <div id="durbox">${durTxt(60,false)}</div>
-      <div class="field"><label class="label" for="at">${isCap?'Temática':'Tareas realizadas'}</label><input id="at" placeholder="${isCap?'Ej.: incendio vehicular':'Ej.: limpieza de unidades'}" value="${!isCap&&S.actPrefill?esc(S.actPrefill):''}"></div>
+      <div class="field"><label class="label" for="at">${isCap?'Temática':'Tareas realizadas'}</label><input id="at" placeholder="${isCap?'Ej.: incendio vehicular':'Ej.: limpieza de unidades'}"></div>
       <button class="btn primary big" id="doact" data-act="${S.mode}">Guardar</button>
       <button class="btn" style="margin-top:8px;width:100%" data-mode="">Volver</button></div>`;
   } else {
@@ -409,9 +408,8 @@ function vGuardiaMe(){
     const nov=`<button class="choice" data-mode="news"><span class="ic r">N</span><span><strong>Novedades</strong><small>${up?`${up} próxima${up>1?'s':''}: cursos, charlas, eventos`:'Cursos, charlas, eventos'}${r?' · podés publicar':''}</small></span></button>`;
     const avisos=pushOn()?'':`<div class="card alert"><h3>Avisos en este celular</h3><p style="margin:0 0 6px">Activalos para recibir el recordatorio de las ${S.cfg.reminder} y las novedades nuevas.</p>${isIOS&&!isStandalone()?'<p class="demo" style="margin:0 0 6px">En iPhone: primero tocá <b>Compartir → Agregar a inicio</b> y abrí la app desde ese ícono.</p>':''}<button class="btn primary big" id="pushon">Activar avisos</button></div>`;
     const calb=`<button class="choice" data-mode="calif"><span class="ic g">%</span><span><strong>Mi calificación</strong><small>Tu porcentaje de asistencia del año y qué mejorar</small></span></button>`;
-    const tarb=`<button class="choice" data-mode="tareas"><span class="ic r">T</span><span><strong>Mis tareas</strong><small>Las que te asignaron y las que podés pedir</small></span></button>`;
     const legb=`<button class="choice" data-mode="legajo"><span class="ic k">L</span><span><strong>Mi legajo</strong><small>Jerarquía, nivel, antigüedad, cursos y tus datos</small></span></button>`;
-    card=`${avisos}${bell}${sup}${cover}${gcard}${tarb}${nov}${calb}${legb}
+    card=`${avisos}${bell}${sup}${cover}${gcard}${nov}${calb}${legb}
       ${hasG?`<div class="card"><h3>Otras actividades de guardia</h3><div class="choices">
         <button class="choice" data-mode="cap"><span class="ic k">C</span><span><strong>Capacitación</strong><small>Hora de inicio, fin y temática</small></span></button>
         <button class="choice" data-mode="mant"><span class="ic y">M</span><span><strong>Mantenimiento / limpieza</strong><small>Hora de inicio, fin y tareas</small></span></button>
@@ -460,14 +458,14 @@ const people=v=>{const gf=gfFor(v);return active().filter(p=>gf==='all'||String(
 function vPanel(viewer,compact){
   const ms=months();if(!S.month)S.month=ms[ms.length-1];
   const scope=scopeOf(viewer),[y,m]=S.month.split('-'),gf=gfFor(viewer);
-  const tabsP=[['guardia','Guardia'],...(canAsist(viewer)?[['asist','Asistencia general']]:[]),...(canAsist(viewer)?[['informes','Resúmenes'],['calif','Calificación']]:[]),['tareas','Tareas'],['legajos','Legajos'],...(roleOf(viewer)==='admin'?[['personal','Personal']]:[])];
+  const tabsP=[['guardia','Guardia'],...(canAsist(viewer)?[['asist','Asistencia general']]:[]),...(canAsist(viewer)?[['informes','Resúmenes'],['calif','Calificación']]:[]),['legajos','Legajos'],...(roleOf(viewer)==='admin'?[['personal','Personal']]:[])];
   if(!tabsP.some(([k])=>k===S.ptab))S.ptab='guardia';
   const ptab=S.ptab;
   const gfOpts=scope==='all'?[['all','Todos'],['1','Guardia 1'],['2','Guardia 2'],['0','Sin guardia y jefatura']]:[[String(scope),'Guardia '+scope]];
   const semana=ptab==='guardia'&&S.gper==='semana';
   const ws=semana?weekStarts(scope):[];
   if(semana&&ws.length&&!ws.some(w=>w.start===S.week))S.week=ws[0].start;
-  const head=`<div class="who"><div><span class="label">${esc(nice(viewer))} · ${roleLabel(viewer)}</span><h2>${semana?'Semana de guardia':{tareas:'Tareas',legajos:'Legajos',calif:'Calificación',personal:'Personal'}[ptab]||`${MESES[+m-1]} ${y}`}</h2></div>${compact?'<button class="btn outline small" data-mode="">Volver</button>':'<button class="btn outline" id="logout">Salir del panel</button>'}</div>
+  const head=`<div class="who"><div><span class="label">${esc(nice(viewer))} · ${roleLabel(viewer)}</span><h2>${semana?'Semana de guardia':`${MESES[+m-1]} ${y}`}</h2></div>${compact?'<button class="btn outline small" data-mode="">Volver</button>':'<button class="btn outline" id="logout">Salir del panel</button>'}</div>
   ${tabsP.length>1?`<div class="seg" role="tablist">${tabsP.map(([k,l])=>`<button data-ptab="${k}" aria-selected="${ptab===k}">${l}</button>`).join('')}</div>`:''}
   ${ptab==='guardia'?`<div class="seg seg2" role="tablist"><button data-gper="mes" aria-selected="${!semana}">Por mes</button><button data-gper="semana" aria-selected="${semana}">Por semana</button></div>`:''}
   ${semana?`<div class="filters"><div class="field" style="flex:1 1 320px"><label class="label" for="fw">Semana</label><select id="fw">${ws.map(w=>`<option value="${w.start}" ${w.start===S.week?'selected':''}>${esc(weekLabel(w))}</option>`).join('')}</select></div></div>`:''}
@@ -482,7 +480,6 @@ function vPanel(viewer,compact){
   if(ptab==='informes')return head.slice(0,head.indexOf('<div class="filters">'))+vInformes(viewer,compact);
   if(ptab==='calif')return head.slice(0,head.indexOf('<div class="filters">'))+vCalifPanel(viewer);
   if(ptab==='legajos')return head.slice(0,head.indexOf('<div class="filters">'))+vLegajosPanel(viewer);
-  if(ptab==='tareas')return head.slice(0,head.indexOf('<div class="filters">'))+vTareasPanel(viewer);
   return head+(ptab==='asist'?vPanelAsist(viewer,compact):vPanelGuardia(viewer,compact));
 }
 /* ---------- semanas de guardia (miércoles 20:00 a miércoles 19:59) ---------- */
@@ -997,7 +994,6 @@ function logoutSess(){
   clearPrivate();render();loadPublic().then(render);
 }
 function render(){
-  if(S.recargar&&!isLogged()&&!S.busy){S.recargar=false;location.reload();return}
   for(const t of TABS){const b=$('#tab-'+t);b.setAttribute('aria-selected',S.tab===t);if(t==='kiosco')b.hidden=!isKiosk()}
   fitHeader();
   renderDuty();
@@ -1091,7 +1087,6 @@ document.addEventListener('click',async e=>{
   if(S.tab==='alertas'&&await alertAction(t))return;
   if((S.tab==='panel'||S.tab==='guardia')&&await califAction(t))return;
   if((S.tab==='panel'||S.tab==='guardia')&&await legajoAction(t))return;
-  if((S.tab==='panel'||S.tab==='guardia')&&await tareasAction(t))return;
   if((t.id==='editmot'||S.motEdit)&&await motAction(t))return;
   if(t.id==='bye'){if(sirenBusy())await sirenStop();logoutSess();return}
   if(t.id==='notyo'){LS.set('bviv_yo',null);logoutSess();return}
@@ -1131,7 +1126,7 @@ document.addEventListener('click',async e=>{
     try{const n=await call('nov_tomar_lista',{nid:+t.dataset.guardalista,presentes:ids});toast(`Asistencia guardada: ${n} presentes.`);S.listaNov=null;S.calD=null;render()}catch(e){}return}
   if(t.dataset.archnews){if(!confirmTwice(t,'Tocá de nuevo para archivarla: pasa a "anteriores".'))return;await act('archivar_novedad',{nid:+t.dataset.archnews},'Novedad archivada.');return}
   if(t.dataset.delnews){await act('borrar_novedad',{nid:+t.dataset.delnews},'Novedad borrada.');return}
-  if(t.dataset.mode!==undefined){if(S.mode==='legajo'){S.legSel=null;S.legD=null;S.legP=null;S.legEdit=null}S.actPrefill=null;if(t.dataset.mode==='tareas'){S.tar=null;S.tarFin=null;S.tarHecha=null}S.mode=t.dataset.mode||null;S.motivo=null;S.est=null;S.newsForm=false;render();return}
+  if(t.dataset.mode!==undefined){if(S.mode==='legajo'){S.legSel=null;S.legD=null;S.legP=null;S.legEdit=null}S.mode=t.dataset.mode||null;S.motivo=null;S.est=null;S.newsForm=false;render();return}
   if(t.dataset.mot){keepFields(()=>{S.motivo=t.dataset.mot;render()});return}
   if(t.dataset.est){keepFields(()=>{S.est=t.dataset.est;render()});return}
   const who=sess()?.who;
@@ -1163,7 +1158,7 @@ document.addEventListener('click',async e=>{
   if(t.id==='pdfweek'){pdfSemana(viewerNow());return}
   if(t.id==='pdfmonth'){pdfMesGuardia(viewerNow());return}
   if(t.id==='pdfofi'){pdfOficial(viewerNow());return}
-  if(t.dataset.ptab){S.ptab=t.dataset.ptab;S.ficha=null;S.editP=null;S.confirmBaja=null;S.legSel=null;S.legEdit=null;S.legP=null;S.legD=null;S.legCat=null;if(S.ptab==='tareas'){S.tar=null;S.tarDev=null}render();return}
+  if(t.dataset.ptab){S.ptab=t.dataset.ptab;S.ficha=null;S.editP=null;S.confirmBaja=null;S.legSel=null;S.legEdit=null;S.legP=null;S.legD=null;S.legCat=null;render();return}
   if(t.dataset.ficha){S.ficha=S.ficha===t.dataset.ficha?null:t.dataset.ficha;render();if(S.ficha)$('#ficha').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(t.id==='csv'){const v=viewerNow();let txt;
     if(S.ptab==='asist'&&canAsist(v)){const rows=people(v).map(p=>agStats(p.n,S.month));const mots=motivosTodos().filter(mo=>rows.some(r=>r.by[mo]));
@@ -1173,7 +1168,7 @@ document.addEventListener('click',async e=>{
     navigator.clipboard.writeText(txt).then(()=>toast('Tabla copiada. Pegala en Sheets.'),()=>toast('Este navegador no dejó copiar automáticamente.'));return}
 });
 document.addEventListener('input',e=>{if(e.target.id==='mi'||e.target.id==='mf'){const b=$('#durbox');if(b)b.innerHTML=durManual();return}if(S.tab==='sci'&&sciInput(e))return;if(e.target.id==='if_q'&&S.eppIF){S.eppIF.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#if_q');q.focus();q.setSelectionRange(pos,pos);return}if(e.target.id==='ef_q'&&S.eppFil){S.eppFil.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#ef_q');q.focus();q.setSelectionRange(pos,pos);return}if(e.target.id==='q'){sess().q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(pos,pos)}});
-document.addEventListener('change',e=>{const did=e.target.id||'';if(/^(ci|cf)_(h|m)$/.test(did)||did==='cd1'||did==='cd2'){const b=$('#durbox');if(b)b.innerHTML=durCursoAhora();return}if(/^(ai|af)_(h|m)$/.test(did)){const b=$('#durbox');if(b)b.innerHTML=durAct();return}if(did==='mi'||did==='mf'){const b=$('#durbox');if(b)b.innerHTML=durManual();return}if(e.target.id==='nv_conf'){const b=$('#nv_cupbox');if(b)b.hidden=!e.target.checked;return}if(alertChange(e))return;if(califChange(e))return;if(legajoChange(e))return;if(tareasChange(e))return;if(S.tab==='sci'&&typeof sciChange==='function'&&sciChange(e))return;if(S.tab==='epp'&&eppChange(e))return;if(e.target.id==='sn_reas'){S.sinReasign=e.target.checked;render();return}if(S.rep&&['rb','rf','rt'].includes(e.target.id)){S.rep[{rb:'b',rf:'from',rt:'to'}[e.target.id]]=e.target.value;render();return}if(e.target.id==='fm'){S.month=e.target.value;render()}if(e.target.id==='fw'){S.week=e.target.value;render()}if(e.target.id==='fg'){S.gfilter=e.target.value;render()}});
+document.addEventListener('change',e=>{const did=e.target.id||'';if(/^(ci|cf)_(h|m)$/.test(did)||did==='cd1'||did==='cd2'){const b=$('#durbox');if(b)b.innerHTML=durCursoAhora();return}if(/^(ai|af)_(h|m)$/.test(did)){const b=$('#durbox');if(b)b.innerHTML=durAct();return}if(did==='mi'||did==='mf'){const b=$('#durbox');if(b)b.innerHTML=durManual();return}if(e.target.id==='nv_conf'){const b=$('#nv_cupbox');if(b)b.hidden=!e.target.checked;return}if(alertChange(e))return;if(califChange(e))return;if(legajoChange(e))return;if(S.tab==='sci'&&typeof sciChange==='function'&&sciChange(e))return;if(S.tab==='epp'&&eppChange(e))return;if(e.target.id==='sn_reas'){S.sinReasign=e.target.checked;render();return}if(S.rep&&['rb','rf','rt'].includes(e.target.id)){S.rep[{rb:'b',rf:'from',rt:'to'}[e.target.id]]=e.target.value;render();return}if(e.target.id==='fm'){S.month=e.target.value;render()}if(e.target.id==='fw'){S.week=e.target.value;render()}if(e.target.id==='fg'){S.gfilter=e.target.value;render()}});
 document.addEventListener('keydown',e=>{
   if(S.saver||e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
@@ -1211,8 +1206,6 @@ function goBack(){
     if(S.alrNew){S.alrNew=false;return true}
   }
   if(S.newsForm){S.newsForm=false;return true}
-  if(S.tarFin&&S.mode==='tareas'){S.tarFin=null;return true}
-  if(S.tarDev){S.tarDev=null;return true}
   if(S.legEdit&&((S.tab==='panel'&&S.ptab==='legajos')||S.mode==='legajo')){S.legEdit=null;S.legCat=null;S.legDraft=null;S.legFile=null;return true}
   if(S.tab==='panel'&&S.admin&&S.ptab==='legajos'&&S.legSel){S.legSel=null;S.legD=null;S.legP=null;return true}
   if(S.tab==='panel'&&S.admin){
@@ -1250,12 +1243,7 @@ function prefillYo(){const yo=LS.get('bviv_yo'),s=sess();if(!isKiosk()&&yo&&memb
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};
   if(d.tipo==='alerta')loadPublic().then(()=>{if(S.tab==='alertas'&&isLogged())reload()});
   if(d.tipo==='abrir'&&d.tab==='alertas'&&S.tab!=='alertas')goAlertas();});
-if('serviceWorker' in navigator){
-  const habiaSW=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js').then(r=>{setInterval(()=>r.update().catch(()=>{}),30*60*1000)}).catch(()=>{});
-  // Versión nueva instalada: se recarga sola apenas nadie tenga una sesión abierta.
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!habiaSW)return;if(!isLogged())location.reload();else S.recargar=true});
-}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 (async()=>{
   render();
   await loadPublic();

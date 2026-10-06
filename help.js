@@ -102,16 +102,6 @@ const AYUDA = {
     '<b>Semestres:</b> control de mitad de año, solo la asistencia, con cada parte por separado.',
     '<b>Año completo:</b> la junta marca de 0 a 5 vocación, capacidad y cualidades. La asistencia la calcula la app; tocá el nombre para ver el detalle, corregirla con motivo o calificar a los oficiales.',
     '<b>Metas y pesos:</b> horas pedidas por semestre y cuánto pesa cada parte. <b>Cerrar calificación</b> guarda todo, marca observados y publica la mención.']],
-  tarMis: ['Mis tareas', [
-    '<b>Empezar</b> marca que la estás haciendo; <b>Terminar</b> (o <b>Ya la hice</b>) la manda a revisión, con foto y nota si querés.',
-    'La revisa un superior de tu guardia. Si te la devuelven, aparece con el comentario de qué falta.',
-    '<b>Podés pedir</b>: tareas vencidas que podés anotarte por tu cuenta. Suman en tu calificación como iniciativa.',
-    'Las horas se siguen cargando en Mantenimiento/limpieza: al terminar te ofrece cargarlas con la descripción completa.']],
-  tarPanel: ['Panel · Tareas', [
-    '<b>Tablero</b>: por hacer, en curso, para revisar y hechas. Las que asignaste vos las revisa otro superior de la guardia.',
-    '<b>Asignar</b>: lugar, tareas y personas en un solo formulario. Los superiores asignan a su guardia; jefatura y administradores, a cualquiera.',
-    '<b>Periódicas</b>: semáforo de las tareas con frecuencia. Tocá una casilla para asignarla.',
-    '<b>Catálogo</b>: agregá unidades, sectores y tareas, y la frecuencia (cada cuántos días) si hace falta que la app avise.']],
   legLista: ['Panel · Legajos', [
     'Tocá a una persona para ver su legajo: jerarquía, nivel, antigüedad (una estrella cada 5 años), departamentos, cursos e historial.',
     'Cargan y corrigen: administradores, jefatura y superiores. Los ascensos y cambios de nivel quedan solos en el historial.',
@@ -147,7 +137,6 @@ function ayudaActual(){
       if(S.mode === 'panel') return A.panelGuardia;
       if(S.mode === 'calif') return A.calMi;
       if(S.mode === 'legajo') return A.legMi;
-      if(S.mode === 'tareas') return A.tarMis;
       return A.guardiaMe;
     case 'alertas':
       if(!v) return A.alertasOut;
@@ -167,7 +156,6 @@ function ayudaActual(){
       return v ? mas(A.novIn, rol && A.novRol) : A.novOut;
     case 'panel':
       if(!S.admin) return A.panelWho;
-      if(S.ptab === 'tareas') return A.tarPanel;
       if(S.ptab === 'legajos') return S.legSel ? A.legPers : A.legLista;
       return { guardia: A.panelGuardia, asist: A.panelAsist, informes: A.panelInf, personal: A.panelPers, calif: A.panelCalif }[S.ptab] || A.panelGuardia;
   }
